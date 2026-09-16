@@ -2,6 +2,7 @@
 import { onMounted, onBeforeUnmount, ref } from 'vue'
 import { Game } from './game/game'
 import { state } from './game/state'
+import { startAmbient, resumeAmbient, stopAmbient } from './audio/ambient'
 import Hud from './components/Hud.vue'
 
 const host = ref<HTMLDivElement | null>(null)
@@ -12,9 +13,18 @@ onMounted(async () => {
   const seed = new URLSearchParams(location.search).get('seed') ?? 'phoenix'
   await game.init(host.value!, seed)
   game.minimap = document.getElementById('minimap') as HTMLCanvasElement | null
+
+  startAmbient()
+  const resumeOnce = () => {
+    resumeAmbient()
+    window.removeEventListener('pointerdown', resumeOnce)
+    window.removeEventListener('keydown', resumeOnce)
+  }
+  window.addEventListener('pointerdown', resumeOnce)
+  window.addEventListener('keydown', resumeOnce)
 })
 
-onBeforeUnmount(() => game?.destroy())
+onBeforeUnmount(() => { game?.destroy(); stopAmbient() })
 </script>
 
 <template>

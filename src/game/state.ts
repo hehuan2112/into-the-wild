@@ -24,6 +24,8 @@ export const state = reactive({
   message: '',
   messageUntil: 0,
   fps: 0,
+  muted: false,
+  volume: 0.15,
 })
 
 for (let i = 0; i < BAG_CAPACITY; i++) state.bag.push(null)

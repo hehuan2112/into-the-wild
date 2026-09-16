@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { state } from '../game/state'
+import { toggleAmbientMute } from '../audio/ambient'
 import Hotbar from './Hotbar.vue'
 import BagPanel from './BagPanel.vue'
 
@@ -21,6 +22,9 @@ const clock = computed(() => {
       </div>
     </div>
     <div class="topright">
+      <button class="mute-btn" type="button" @click="toggleAmbientMute" :title="state.muted ? 'Unmute ambience' : 'Mute ambience'">
+        {{ state.muted ? '🔇' : '🔊' }}
+      </button>
       <canvas id="minimap" width="96" height="96"></canvas>
     </div>
     <transition name="fade">
@@ -44,7 +48,9 @@ const clock = computed(() => {
 .panel { margin: 12px; padding: 8px 12px; background: rgba(20, 16, 10, 0.55); border: 2px solid #5a4a30; border-radius: 8px; font-size: 13px; line-height: 1.5; }
 .dim { color: #b8a880; font-size: 11px; }
 .topleft { position: absolute; top: 0; left: 0; }
-.topright { position: absolute; top: 12px; right: 12px; }
+.topright { position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+.mute-btn { pointer-events: auto; cursor: pointer; width: 32px; height: 32px; font-size: 16px; background: rgba(20, 16, 10, 0.55); border: 2px solid #5a4a30; border-radius: 8px; color: #f4ead2; }
+.mute-btn:hover { background: rgba(20, 16, 10, 0.75); }
 #minimap { width: 144px; height: 144px; image-rendering: pixelated; border: 2px solid #5a4a30; border-radius: 8px; background: #000; }
 .bottom { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); }
 .center { position: absolute; inset: 0; display: grid; place-items: center; }

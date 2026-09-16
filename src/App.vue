@@ -1,0 +1,32 @@
+<script setup lang="ts">
+import { onMounted, onBeforeUnmount, ref } from 'vue'
+import { Game } from './game/game'
+import { state } from './game/state'
+import Hud from './components/Hud.vue'
+
+const host = ref<HTMLDivElement | null>(null)
+let game: Game | null = null
+
+onMounted(async () => {
+  game = new Game()
+  const seed = new URLSearchParams(location.search).get('seed') ?? 'phoenix'
+  await game.init(host.value!, seed)
+  game.minimap = document.getElementById('minimap') as HTMLCanvasElement | null
+})
+
+onBeforeUnmount(() => game?.destroy())
+</script>
+
+<template>
+  <div class="root">
+    <div ref="host" class="canvas-host"></div>
+    <Hud v-if="state.ready" />
+    <div v-else class="loading">Generating the desert…</div>
+  </div>
+</template>
+
+<style scoped>
+.root { position: fixed; inset: 0; overflow: hidden; background: #d8b98c; }
+.canvas-host { position: absolute; inset: 0; }
+.loading { position: absolute; inset: 0; display: grid; place-items: center; font-family: ui-monospace, monospace; color: #5a4a30; }
+</style>

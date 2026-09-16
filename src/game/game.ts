@@ -80,7 +80,16 @@ export class Game {
     addItem('rock', 5)
     state.ready = true
     say('You wake up in the Sonoran wild. Explore.')
-    this.app.ticker.add((t) => this.tick(Math.min(t.deltaMS, 50) / 1000))
+    this.app.ticker.add((t) => {
+      try {
+        this.tick(Math.min(t.deltaMS, 50) / 1000)
+      } catch (err) {
+        // Never let one bad frame freeze the game silently.
+        console.error('[into-the-wild] frame error', err)
+        say('Something glitched. Check the console.', 4000)
+        this.input.endFrame()
+      }
+    })
   }
 
   private async exportIcons(): Promise<void> {
@@ -195,6 +204,7 @@ export class Game {
     const t = performance.now() / 1000
     let nearest: GroundItem | null = null
     let nearestD = Infinity
+    const picked: GroundItem[] = []
     for (const gi of this.world.nearbyItems(this.px, this.py)) {
       const d = Math.hypot(gi.x - this.px, gi.y - this.py)
       // bob
@@ -211,13 +221,19 @@ export class Game {
         if (left === 0) {
           say(`Picked up ${ITEMS[gi.item].name}`)
           this.puff(gi.x, gi.y)
-          this.world.removeItem(gi)
+          picked.push(gi)
           continue
         } else if (Math.random() < 0.02) {
           say('Bag is full!')
         }
       }
       if (d < nearestD) { nearestD = d; nearest = gi }
+    }
+    // Remove picked-up items after iterating so the chunk lists are not mutated mid-loop.
+    for (const gi of picked) {
+      const label = this.labels.get(gi)
+      if (label) { label.destroy(); this.labels.delete(gi) }
+      this.world.removeItem(gi)
     }
     // Label for the nearest item (within a short distance)
     for (const [gi, label] of this.labels) {

@@ -23,6 +23,8 @@ export interface GroundItem {
   shadow: Sprite
   /** Hover animation phase. */
   phase: number
+  /** Chunk whose item list owns this entry (items can drift across borders when pulled). */
+  chunk: Chunk
 }
 
 interface ChunkDelta {
@@ -255,7 +257,7 @@ export class World {
     shadow.zIndex = y - 0.5
     shadow.scale.set(0.8)
     this.objectLayer.addChild(shadow, sprite)
-    const gi: GroundItem = { id: nextItemId++, item, x, y, sprite, shadow, phase: Math.random() * Math.PI * 2 }
+    const gi: GroundItem = { id: nextItemId++, item, x, y, sprite, shadow, phase: Math.random() * Math.PI * 2, chunk }
     if (natural) this.natural.add(gi)
     chunk.items.push(gi)
     return gi
@@ -288,9 +290,10 @@ export class World {
 
   /** Remove a ground item from the world (picked up). */
   removeItem(gi: GroundItem): void {
-    const c = this.chunkAt(gi.x, gi.y)
+    const c = gi.chunk
     const idx = c.items.indexOf(gi)
-    if (idx >= 0) c.items.splice(idx, 1)
+    if (idx < 0) return // already removed
+    c.items.splice(idx, 1)
     if (this.natural.has(gi)) {
       this.delta(c.cx, c.cy).removed.add(`${Math.floor(gi.x / TILE)},${Math.floor(gi.y / TILE)}`)
     }
